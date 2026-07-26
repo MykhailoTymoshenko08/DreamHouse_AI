@@ -7,11 +7,8 @@ DreamHouse AI — це Machine Learning пет-проєкт (Full-Stack), яки
 ## Технологічний стек
 
 - Machine Learning: Python, Pandas, Scikit-Learn, XGBoost
-
 - Backend: FastAPI, Pydantic, Uvicorn
-
 - Frontend: HTML5, JavaScript (Fetch API), Tailwind CSS
-
 - Аналітика: Jupyter Notebook, Matplotlib, Seaborn
 
 ## Структура проєкту
