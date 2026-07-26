@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 import joblib
 import pandas as pd
-import numpy as np
+import xgboost as xgb
 import os
 
 app = FastAPI(title="DreamHouse AI API")
@@ -17,16 +17,20 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Шляхи до папок
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 MODELS_DIR = os.path.join(BASE_DIR, '../models')
 FRONTEND_DIR = os.path.join(BASE_DIR, '../frontend')
 
-model_path = os.path.join(MODELS_DIR, 'house_pricer_xgb.pkl')
+# 1. Змінили розширення на .json
+model_path = os.path.join(MODELS_DIR, 'house_pricer_xgb.json')
 features_path = os.path.join(MODELS_DIR, 'model_features.pkl')
 
-model = joblib.load(model_path)
+# 2. Завантажуємо фічі
 model_features = joblib.load(features_path)
+
+# 3. Правильно завантажуємо XGBoost модель
+model = xgb.XGBRegressor()
+model.load_model(model_path)
 
 class HouseRequest(BaseModel):
     area_sqm: float
@@ -37,12 +41,10 @@ class HouseRequest(BaseModel):
     has_landscape: int
     material: str 
 
-# 1. Віддаємо користувачам наш красивий веб-інтерфейс на головній сторінці!
 @app.get("/")
 def serve_frontend():
     return FileResponse(os.path.join(FRONTEND_DIR, 'index.html'))
 
-# 2. А це наш ШІ-мозок, який рахує ціни
 @app.post("/predict_price")
 def predict_price(house: HouseRequest):
     input_data = house.model_dump()
@@ -56,8 +58,11 @@ def predict_price(house: HouseRequest):
     df_final = df_encoded[model_features]
     predicted_price = model.predict(df_final)[0]
     
+    # 🚀 Safety Net: додаємо "запобіжник" для продакшну (ціна не може бути менше 10k)
+    final_price = max(10000, float(predicted_price))
+    
     return {
         "status": "success",
-        "predicted_price_usd": round(float(predicted_price), 0),
-        "message": f"Орієнтовна вартість будинку: ${predicted_price:,.0f}"
+        "predicted_price_usd": round(final_price, 0),
+        "message": f"Орієнтовна вартість будинку: ${final_price:,.0f}"
     }
