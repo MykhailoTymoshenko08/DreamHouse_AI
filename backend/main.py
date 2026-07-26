@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import joblib
 import pandas as pd
 import numpy as np
+import os
 
 app = FastAPI(title="DreamHouse AI API")
 
@@ -15,8 +16,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-model = joblib.load('../models/house_pricer_xgb.pkl')
-model_features = joblib.load('../models/model_features.pkl')
+# МАГІЯ ДЛЯ VERCEL: Визначаємо точний шлях до папки models
+# __file__ - це шлях до цього файлу (main.py)
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+# Крокуємо на одну папку назад і заходимо в models
+MODELS_DIR = os.path.join(BASE_DIR, '../models')
+
+model_path = os.path.join(MODELS_DIR, 'house_pricer_xgb.pkl')
+features_path = os.path.join(MODELS_DIR, 'model_features.pkl')
+
+model = joblib.load(model_path)
+model_features = joblib.load(features_path)
 
 class HouseRequest(BaseModel):
     area_sqm: float
@@ -25,23 +35,25 @@ class HouseRequest(BaseModel):
     distance_city_km: float
     has_pool: int
     has_landscape: int
-    material: str  # 'Wood', 'Brick', or 'Aerated_block'
+    material: str 
 
 @app.get("/")
 def read_root():
-    return {"message": "API is working. Go on /docs"}
+    return {"message": "Привіт! API працює. Перейди на /docs для тестування."}
 
 @app.post("/predict_price")
 def predict_price(house: HouseRequest):
     input_data = house.model_dump()
     df = pd.DataFrame([input_data])
     df_encoded = pd.get_dummies(df, columns=['material'], dtype=int)
+    
     for col in model_features:
-        if col is not None and col not in df_encoded.columns:
+        if col not in df_encoded.columns:
             df_encoded[col] = 0
             
     df_final = df_encoded[model_features]
     predicted_price = model.predict(df_final)[0]
+    
     return {
         "status": "success",
         "predicted_price_usd": round(float(predicted_price), 0),
