@@ -1,0 +1,11 @@
+.DS_Store
+ehthumbs.db
+Thumbs.db
+venv/
+.env
+__pycache__/
+dist/
+build/
+.vscode/
+.idea/
+data/
