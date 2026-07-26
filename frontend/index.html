@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DreamHouse AI - Planning</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .fade-in { animation: fadeIn 0.5s ease-in-out; }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body  class="bg-slate-100 font-sans text-slate-800 min-h-screen flex items-center justify-center p-4">
+<!-- style="display: flex; flex-direction: column;", -->
+    <div class="max-w-4xl w-full bg-white rounded-2xl shadow-xl overflow-hidden flex flex-col md:flex-row">
+        <div class="w-full md:w-2/3 p-8">
+            <h1 class="text-3xl font-bold text-emerald-700 mb-2">DreamHouse AI</h1>
+            <p class="text-slate-500 mb-8">Вкажіть параметри будинку вашої мрії, і наш штучний інтелект розрахує його орієнтовну вартість.</p>
+
+            <form id="houseForm" class="space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-2">Площа (кв.м): <span id="areaVal" class="text-emerald-600 font-bold">150</span></label>
+                        <input type="range" id="area" min="50" max="500" value="150" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-emerald-600" oninput="document.getElementById('areaVal').innerText = this.value">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-2">Матеріал стін</label>
+                        <select id="material" class="w-full border border-slate-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none">
+                            <option value="Aerated_block">Газоблок (Економ)</option>
+                            <option value="Brick" selected>Цегла (Стандарт)</option>
+                            <option value="Wood">Дерево (Преміум еко)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-2">Кімнат</label>
+                        <input type="number" id="rooms" min="1" max="10" value="4" class="w-full border border-slate-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-emerald-500 outline-none">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-2">Поверхів</label>
+                        <select id="floors" class="w-full border border-slate-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-emerald-500 outline-none">
+                            <option value="1">1 поверх</option>
+                            <option value="2" selected>2 поверхи</option>
+                            <option value="3">3 поверхи</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-slate-700 mb-2">Відстань від міста (км)</label>
+                        <input type="number" id="distance" min="1" max="100" value="15" class="w-full border border-slate-300 rounded-lg px-4 py-2 focus:ring-2 focus:ring-emerald-500 outline-none">
+                    </div>
+                </div>
+
+                <div class="flex space-x-6 border-t border-slate-100 pt-6">
+                    <label class="flex items-center space-x-3 cursor-pointer">
+                        <input type="checkbox" id="pool" class="w-5 h-5 text-emerald-600 rounded focus:ring-emerald-500">
+                        <span class="text-slate-700 font-medium">Басейн</span>
+                    </label>
+                    <label class="flex items-center space-x-3 cursor-pointer">
+                        <input type="checkbox" id="landscape" class="w-5 h-5 text-emerald-600 rounded focus:ring-emerald-500">
+                        <span class="text-slate-700 font-medium">Ландшафтний дизайн</span>
+                    </label>
+                </div>
+
+                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-xl transition duration-200 shadow-md">
+                    Розрахувати вартість
+                </button>
+            </form>
+        </div>
+
+        <div class="w-full md:w-1/3 bg-slate-800 p-8 flex flex-col justify-center items-center text-center text-white border-l border-slate-700">
+            <div id="loading" class="hidden">
+                <svg class="animate-spin h-10 w-10 text-emerald-500 mb-4 mx-auto" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                <p class="text-slate-300">ШІ аналізує дані...</p>
+            </div>
+
+            <div id="resultBox" class="hidden fade-in w-full">
+                <p class="text-slate-400 text-sm font-medium uppercase tracking-wider mb-2">Прогноз ШІ</p>
+                <h2 id="priceResult" class="text-4xl font-bold text-emerald-400 mb-4">$0</h2>
+                
+                <div class="bg-slate-700/50 rounded-lg p-4 text-left">
+                    <p class="text-xs text-slate-300 mb-2"><span class="font-bold">Аналіз моделі:</span></p>
+                    <ul class="text-xs text-slate-400 space-y-1">
+                        <li>• Точність моделі (R2): <span class="text-white">96%</span></li>
+                        <li>• Головний фактор: <span class="text-white">Матеріал</span></li>
+                        <li id="extraInfo"></li>
+                    </ul>
+                </div>
+            </div>
+
+            <div id="welcomeBox">
+                <div class="text-6xl mb-4"></div>
+                <p class="text-slate-300">Заповніть форму зліва, щоб отримати миттєвий кошторис від моделі XGBoost.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- <div style="margin-top: 10vw;">
+        <span>Made by RZK Soft</span>
+    </div> -->
+
+    <script>
+        document.getElementById('houseForm').addEventListener('submit', async function(e) {
+            e.preventDefault(); // Зупиняємо стандартне перезавантаження сторінки
+            
+            // Показуємо анімацію завантаження
+            document.getElementById('welcomeBox').classList.add('hidden');
+            document.getElementById('resultBox').classList.add('hidden');
+            document.getElementById('loading').classList.remove('hidden');
+
+            // Збираємо дані з форми
+            const requestData = {
+                area_sqm: parseFloat(document.getElementById('area').value),
+                rooms: parseInt(document.getElementById('rooms').value),
+                floors: parseInt(document.getElementById('floors').value),
+                distance_city_km: parseFloat(document.getElementById('distance').value),
+                has_pool: document.getElementById('pool').checked ? 1 : 0,
+                has_landscape: document.getElementById('landscape').checked ? 1 : 0,
+                material: document.getElementById('material').value
+            };
+
+            try {
+                // Відправляємо POST запит на наш Python бекенд
+                const response = await fetch('http://127.0.0.1:8000/predict_price', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(requestData)
+                });
+
+                if (!response.ok) throw new Error('Помилка сервера');
+                
+                const data = await response.json();
+                
+                // Штучна затримка для краси ефекту "аналізу" (0.5 сек)
+                setTimeout(() => {
+                    document.getElementById('loading').classList.add('hidden');
+                    
+                    // Форматуємо число (додаємо коми: 100000 -> 100,000)
+                    const formattedPrice = new Intl.NumberFormat('en-US').format(data.predicted_price_usd);
+                    document.getElementById('priceResult').innerText = `$${formattedPrice}`;
+                    
+                    // Додатковий текст
+                    const extraText = requestData.material === 'Aerated_block' 
+                        ? '• Ви обрали найекономніший матеріал.' 
+                        : '• Преміум матеріали додають вартості.';
+                    document.getElementById('extraInfo').innerHTML = extraText;
+
+                    document.getElementById('resultBox').classList.remove('hidden');
+                }, 500);
+
+            } catch (error) {
+                alert('Помилка з\'єднання! Переконайся, що сервер uvicorn запущено.');
+                document.getElementById('loading').classList.add('hidden');
+                document.getElementById('welcomeBox').classList.remove('hidden');
+            }
+        });
+    </script>
+</body>
+</html>
