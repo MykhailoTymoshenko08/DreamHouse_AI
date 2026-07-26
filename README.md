@@ -12,7 +12,7 @@ DreamHouse AI — це Machine Learning пет-проєкт (Full-Stack), яки
 - Аналітика: Jupyter Notebook, Matplotlib, Seaborn
 
 ## Структура проєкту
-
+```bash
 DreamHouse_AI/
 │
 ├── data_generation/           
@@ -35,7 +35,7 @@ DreamHouse_AI/
 │
 └── frontend/                  
     └── index.html             # Веб-інтерфейс користувача
-
+```
 
 ## Як запустити проєкт локально
 
