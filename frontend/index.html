@@ -129,7 +129,8 @@
 
             try {
                 // Відправляємо POST запит на наш Python бекенд
-                const response = await fetch('http://127.0.0.1:8000/predict_price', {
+                const response = await fetch('/predict_price', { 
+                    //http://127.0.0.1:8000/predict_price
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(requestData)
