@@ -28,8 +28,8 @@ features_path = os.path.join(MODELS_DIR, 'model_features.pkl')
 # 2. Завантажуємо фічі
 model_features = joblib.load(features_path)
 
-# 3. Правильно завантажуємо XGBoost модель
-model = xgb.XGBRegressor()
+# 3. Правильно завантажуємо XGBoost модель (Native Booster)
+model = xgb.Booster()
 model.load_model(model_path)
 
 class HouseRequest(BaseModel):
@@ -56,7 +56,10 @@ def predict_price(house: HouseRequest):
             df_encoded[col] = 0
             
     df_final = df_encoded[model_features]
-    predicted_price = model.predict(df_final)[0]
+    
+    # 🚀 Використовуємо DMatrix для нативного Booster
+    dmatrix = xgb.DMatrix(df_final)
+    predicted_price = model.predict(dmatrix)[0]
     
     # 🚀 Safety Net: додаємо "запобіжник" для продакшну (ціна не може бути менше 10k)
     final_price = max(10000, float(predicted_price))
