@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse
 import joblib
 import pandas as pd
 import numpy as np
@@ -16,11 +17,10 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# МАГІЯ ДЛЯ VERCEL: Визначаємо точний шлях до папки models
-# __file__ - це шлях до цього файлу (main.py)
+# Шляхи до папок
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-# Крокуємо на одну папку назад і заходимо в models
 MODELS_DIR = os.path.join(BASE_DIR, '../models')
+FRONTEND_DIR = os.path.join(BASE_DIR, '../frontend')
 
 model_path = os.path.join(MODELS_DIR, 'house_pricer_xgb.pkl')
 features_path = os.path.join(MODELS_DIR, 'model_features.pkl')
@@ -37,10 +37,12 @@ class HouseRequest(BaseModel):
     has_landscape: int
     material: str 
 
+# 1. Віддаємо користувачам наш красивий веб-інтерфейс на головній сторінці!
 @app.get("/")
-def read_root():
-    return {"message": "Привіт! API працює. Перейди на /docs для тестування."}
+def serve_frontend():
+    return FileResponse(os.path.join(FRONTEND_DIR, 'index.html'))
 
+# 2. А це наш ШІ-мозок, який рахує ціни
 @app.post("/predict_price")
 def predict_price(house: HouseRequest):
     input_data = house.model_dump()
