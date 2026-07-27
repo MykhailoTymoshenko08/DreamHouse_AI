@@ -21,15 +21,15 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 MODELS_DIR = os.path.join(BASE_DIR, '../models')
 FRONTEND_DIR = os.path.join(BASE_DIR, '../frontend')
 
-# 1. Змінили розширення на .json
 model_path = os.path.join(MODELS_DIR, 'house_pricer_xgb.json')
 features_path = os.path.join(MODELS_DIR, 'model_features.pkl')
 
-# 2. Завантажуємо фічі
+# 1. Завантажуємо фічі (порядок колонок)
 model_features = joblib.load(features_path)
 
-# 3. Правильно завантажуємо XGBoost модель (Native Booster)
-model = xgb.Booster()
+# 🚀 ФІНАЛЬНИЙ ФІКС: Завантажуємо JSON через XGBRegressor, 
+# щоб модель згадала свою базову ціну (base_score)
+model = xgb.XGBRegressor()
 model.load_model(model_path)
 
 class HouseRequest(BaseModel):
@@ -57,11 +57,10 @@ def predict_price(house: HouseRequest):
             
     df_final = df_encoded[model_features]
     
-    # 🚀 Використовуємо DMatrix для нативного Booster
-    dmatrix = xgb.DMatrix(df_final)
-    predicted_price = model.predict(dmatrix)[0]
+    # 🚀 Робимо прогноз (тепер base_score автоматично додасться!)
+    predicted_price = model.predict(df_final)[0]
     
-    # 🚀 Safety Net: додаємо "запобіжник" для продакшну (ціна не може бути менше 10k)
+    # Safety Net (запобіжник)
     final_price = max(10000, float(predicted_price))
     
     return {
